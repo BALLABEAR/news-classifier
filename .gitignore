@@ -1,0 +1,67 @@
+# Виртуальное окружение
+venv/
+env/
+ENV/
+
+# Кэш Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.project
+.pydevproject
+.settings/
+
+# Файлы окружения
+.env
+.env.local
+.env.*.local
+
+# Данные (исключаем почти всё)
+data/downloaded/
+data/raw/
+data/rss/
+data/processed/*
+!data/processed/label_map.json
+
+# Логи
+*.log
+parser.log
+logs/
+*.log.*
+
+# Системные файлы
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Временные файлы
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Streamlit secrets
+.streamlit/secrets.toml
+
+# Бэкапы
+backup/
+*.backup
+*.bak
+
+# Файлы с паролями/ключами
+*.key
+*.pem
+*.crt".venv/" 
+".venv/" 

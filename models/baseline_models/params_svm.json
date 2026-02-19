@@ -1,0 +1,5 @@
+{
+    "loss": "squared_hinge",
+    "class_weight": null,
+    "C": 1.0
+}
