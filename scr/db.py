@@ -60,7 +60,7 @@ def save_many_articles(articles):
                 article['source']
             ))
         except Exception as e:
-            logger.error(f'Ошибка вставки {article['link']}: {e}')
+            logger.error(f'Ошибка вставки {article["link"]}: {e}')
     conn.commit()
     cur.close()
     conn.close()

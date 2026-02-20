@@ -46,7 +46,7 @@ def clean_and_label(df: pd.DataFrame) -> pd.DataFrame:
     )
 
     df = df[~df['category_clean'].isin(CATEGORIES_TO_REMOVE)]
-    logger.info(f"{"После удаления categories_to_remove":<40} | rows: {len(df)}")
+    logger.info(f"{'После удаления categories_to_remove':<40} | rows: {len(df)}")
 
     df['category_clean'] = df['category_clean'].map(CATEGORIES_MAPPING)
     df = df.dropna(subset=['category_clean'])
@@ -58,7 +58,7 @@ def clean_and_label(df: pd.DataFrame) -> pd.DataFrame:
     df['label'] = df['category_clean'].map(label_map)
 
     df = df.drop_duplicates(subset=['lemmatized_text'], keep='first')
-    logger.info(f"{"После удаления дубликатов":<40} | rows: {len(df)}")
+    logger.info(f"{'После удаления дубликатов':<40} | rows: {len(df)}")
 
     return df
 
@@ -80,7 +80,7 @@ def plot_data(df: pd.DataFrame) -> None:
 
 def main() -> None:
     df = pd.read_csv(INPUT_PATH)
-    logger.info(f"{"Загружен исходный датасет":<40} | rows: {len(df)}")
+    logger.info(f"{'Загружен исходный датасет':<40} | rows: {len(df)}")
 
     result_df = clean_and_label(df)
     success = save_data(result_df, OUTPUT_PATH)

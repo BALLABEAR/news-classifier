@@ -2,6 +2,10 @@
 venv/
 env/
 ENV/
+.venv/
+.env/
+.venv*/
+.env*/
 
 # Кэш Python
 __pycache__/

@@ -1,0 +1,14 @@
+{
+  "class_path": "train_fnn.FNNClassifier",
+  "init_params": {
+    "vocab_size": 50002,
+    "embedding_dim": 300,
+    "hidden_sizes": [
+      256,
+      128
+    ],
+    "num_classes": 11,
+    "dropout": 0.3,
+    "use_batch_norm": true
+  }
+}
