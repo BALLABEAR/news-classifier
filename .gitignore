@@ -69,3 +69,13 @@ backup/
 *.pem
 *.crt".venv/" 
 ".venv/" 
+
+# Большие файлы
+*.bin
+*.pt
+*.pkl
+*.dll
+*.so
+*.dylib
+models/neural_models/*/model.pt
+data/embeddings/*.bin
