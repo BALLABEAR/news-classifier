@@ -24,8 +24,13 @@ st.title("📰 Поиск новостей по рубрике с нейросе
 
 # Пути к моделям и маппингу категорий
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-MODEL_DIR = BASE_DIR / "models" / "baseline_models"
+BASELINE_MODEL_DIR = BASE_DIR / "models" / "baseline_models"
+NEURAL_MODEL_DIR = BASE_DIR / "models" / "neural_models"
 LABEL_MAP_PATH = BASE_DIR / "data" / "processed" / "label_map.json"
+TRAIN_NEURAL_PATH = BASE_DIR / "scr" / "models" / "train_neural"
+
+# Можно использовать "svm", "lr", "lgbm", "fnn", "cnn", "rnn"
+DEFAULT_MODEL_NAME = "fnn"
 
 # Загрузка маппинга категорий
 if LABEL_MAP_PATH.exists():
@@ -39,6 +44,44 @@ else:
 
 # Боковая панель с настройками
 st.sidebar.header("Настройки")
+
+# Выбор модели
+available_models = []
+# Проверяем классические модели
+for pkl_file in BASELINE_MODEL_DIR.glob("model_*.pkl"):
+    model_name = pkl_file.stem.replace("model_", "")
+    available_models.append(f"{model_name} (classical)")
+# Проверяем нейронные модели
+if NEURAL_MODEL_DIR.exists():
+    for model_dir in NEURAL_MODEL_DIR.iterdir():
+        if model_dir.is_dir() and (model_dir / "model.pt").exists():
+            available_models.append(f"{model_dir.name} (neural)")
+
+if not available_models:
+    st.error("Не найдено доступных моделей!")
+    st.stop()
+
+# Определяем модель по умолчанию
+default_model_idx = 0
+for i, model_name in enumerate(available_models):
+    if DEFAULT_MODEL_NAME in model_name:
+        default_model_idx = i
+        break
+
+selected_model_str = st.sidebar.selectbox(
+    "Выберите модель",
+    available_models,
+    index=default_model_idx
+)
+
+# Извлекаем имя модели и тип
+if " (classical)" in selected_model_str:
+    selected_model_name = selected_model_str.replace(" (classical)", "")
+    selected_model_type = "classical"
+else:
+    selected_model_name = selected_model_str.replace(" (neural)", "")
+    selected_model_type = "neural"
+
 selected_category = st.sidebar.selectbox("Выберите рубрику", categories)
 
 period_options = {
@@ -65,10 +108,16 @@ def get_seen_items() -> set:
 
 # Функции для работы с данными
 @st.cache_resource
-def load_model_and_vectorizer():
-    model = joblib.load(MODEL_DIR / "model_svm.pkl")
-    vectorizer = joblib.load(MODEL_DIR / "tfidf_vectorizer.pkl")
-    return model, vectorizer
+def load_model_wrapper(model_name: str, model_type: str):
+    from scr.models.model_loader import load_model_by_name
+    
+    device = "cpu"
+    return load_model_by_name(
+        model_name=model_name,
+        base_dir=BASE_DIR,
+        device=device,
+        train_neural_path=TRAIN_NEURAL_PATH
+    )
 
 @st.cache_resource
 def load_lemmatizer():
@@ -171,7 +220,7 @@ def extract_clean_description(html_text: str) -> str:
     return soup.get_text(" ", strip=True)
 
 def classify_entries_for_feed(feed_url: str, selected_period_name: str, target_idx: int,
-                              model, vectorizer, morph):
+                              model_wrapper, morph):
     entries, _ = parse_feed_with_timeout(feed_url)
     if not entries:
         return []
@@ -192,24 +241,14 @@ def classify_entries_for_feed(feed_url: str, selected_period_name: str, target_i
 
         raw_text_for_model = f"{title} {display_description}"
         processed = preprocess_text(raw_text_for_model, morph)
-        vec = vectorizer.transform([processed])
-        pred_idx = model.predict(vec)[0]
+        
+        # Используем универсальный интерфейс ModelWrapper
+        pred_idx = model_wrapper.predict(processed)[0]
 
         if pred_idx == target_idx:
             # Оценка уверенности в виде числа [0, 1]
-            confidence_score = 0.0
-            if hasattr(model, "predict_proba"):
-                confidence_score = float(model.predict_proba(vec)[0][pred_idx])
-            elif hasattr(model, "decision_function"):
-                decision = model.decision_function(vec)
-
-                if decision.ndim == 1:
-                    margin = float(decision[0])
-                else:
-                    margin = float(decision[0][pred_idx])
-
-                # мягкая нормализация
-                confidence_score = 1 / (1 + np.exp(-margin / 2))
+            proba = model_wrapper.predict_proba(processed)[0]
+            confidence_score = float(proba[pred_idx])
 
             if confidence_score < 0.4:
                 continue
@@ -254,7 +293,8 @@ if st.sidebar.button("Показать новости"):
     st.session_state["seen_items"] = set()
     st.session_state["filtered_results"] = []
 
-    model, vectorizer = load_model_and_vectorizer()
+    # Загружаем модель через универсальный загрузчик
+    model_wrapper = load_model_wrapper(selected_model_name, selected_model_type)
     morph = load_lemmatizer()
     target_idx = categories_to_idx[selected_category]
 
@@ -274,8 +314,7 @@ if st.sidebar.button("Показать новости"):
                 feed_url,
                 selected_period,
                 target_idx,
-                model,
-                vectorizer,
+                model_wrapper,
                 morph,
             ): feed_url
             for feed_url in RSS_FEEDS

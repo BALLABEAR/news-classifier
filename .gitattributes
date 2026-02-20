@@ -1,0 +1,6 @@
+models/neural_models/**/*.pt filter=lfs diff=lfs merge=lfs -text
+
+# models/baseline_models/*.pkl filter=lfs diff=lfs merge=lfs -text
+
+# Большие файлы эмбеддингов
+data/embeddings/*.bin filter=lfs diff=lfs merge=lfs -text

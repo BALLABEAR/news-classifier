@@ -35,6 +35,7 @@ data/raw/
 data/rss/
 data/processed/*
 !data/processed/label_map.json
+MODELS_README.md
 
 # Логи
 *.log
@@ -71,11 +72,6 @@ backup/
 ".venv/" 
 
 # Большие файлы
-*.bin
-*.pt
-*.pkl
 *.dll
 *.so
 *.dylib
-models/neural_models/*/model.pt
-data/embeddings/*.bin

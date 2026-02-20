@@ -251,6 +251,7 @@ def main() -> None:
             "num_classes": NUM_CLASSES,
             "dropout": DROPOUT,
             "use_batch_norm": USE_BATCH_NORM,
+            "max_len": MAX_LEN,
         }
     )
 
